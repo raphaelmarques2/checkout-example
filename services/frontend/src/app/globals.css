@@ -1,0 +1,24 @@
+@tailwind base;
+@tailwind components;
+
+body {
+  @apply p-4 bg-gray-50;
+}
+.btn {
+  @apply px-2 py-1 rounded bg-blue-500 hover:bg-blue-400 active:bg-blue-600 text-white text-sm;
+}
+.btn-red {
+  @apply bg-red-500 hover:bg-red-400 active:bg-red-600 text-white;
+}
+
+table {
+  @apply bg-white border border-gray-200 text-xs;
+}
+table th {
+  @apply px-2 text-left;
+}
+table td {
+  @apply px-2;
+}
+
+@tailwind utilities;

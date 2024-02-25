@@ -1,0 +1,14 @@
+version: '3.7'
+services:
+  orders:
+    image: raphaelmarques84/checkout/orders
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    environment:
+      NODE_ENV: production
+      CHOKIDAR_USEPOLLING: true
+    volumes:
+      - .:/app
+      - /app/node_modules
+

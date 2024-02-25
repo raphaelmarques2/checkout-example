@@ -1,0 +1,114 @@
+version: '3.7'
+
+services:
+
+  orders:
+    extends:
+      file: ./services/orders/compose.dev.yaml
+      service: orders
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_FANOUT_EXCHANGE=fanout-exchange
+      - RABBITMQ_ORDERS_QUEUE=orders-queue
+      - DB_URL=postgresql://postgres:postgres@orders-db:5432/db
+    ports:
+      - "3002:5000"
+    depends_on:
+      - rabbitmq
+      - orders-db
+    
+  products:
+    extends:
+      file: ./services/products/compose.dev.yaml
+      service: products
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_FANOUT_EXCHANGE=fanout-exchange
+      - RABBITMQ_PRODUCTS_QUEUE=products-queue
+      - ORDERS_URL=http://orders:5000
+      - DB_URL=postgresql://postgres:postgres@products-db:5432/db
+    ports:
+      - "3003:5000"
+    depends_on:
+      - rabbitmq
+      - products-db
+
+  payments:
+    extends:
+      file: ./services/payments/compose.dev.yaml
+      service: payments
+    environment:
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - RABBITMQ_FANOUT_EXCHANGE=fanout-exchange
+      - RABBITMQ_PAYMENTS_QUEUE=payments-queue
+      - ORDERS_URL=http://orders:5000
+      - DB_URL=postgresql://postgres:postgres@payments-db:5432/db
+    ports:
+      - "3004:5000"
+    restart: always
+    depends_on:
+      - rabbitmq
+      - payments-db
+  
+  frontend:
+    extends:
+      file: ./services/frontend/compose.dev.yaml
+      service: frontend
+    environment:
+      - ORDERS_URL=http://orders:5000
+      - PRODUCTS_URL=http://products:5000
+      - PAYMENTS_URL=http://payments:5000
+    ports:
+      - "3000:3000"
+    depends_on:
+      - orders
+      - products
+      - payments
+
+  rabbitmq:
+    extends:
+      file: ./services/rabbitmq/compose.yaml
+      service: rabbitmq
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+
+  orders-db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
+    ports:
+      - "5001:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+
+  products-db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
+    ports:
+      - "5002:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
+
+  payments-db:
+    image: postgres
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=db
+    ports:
+      - "5003:5432"
+    deploy:
+      resources:
+        limits:
+          cpus: '0.2'
